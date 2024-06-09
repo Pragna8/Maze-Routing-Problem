@@ -1,0 +1,97 @@
+#importing libraries
+import sys
+from collections import deque
+
+# All four potential movements from a cell are listed here.
+row_directions = [-1, 0, 0, 1]
+col_directions = [0, -1, 1, 0]
+
+# Whether it is possible to move from the current position to position (row, col)
+# is determined by this function. If row, col is not in a legal location,
+# has a value of 0, or has already been visited, the method returns false.
+def is_valid_move(grid, visited, row, col):
+    return (row >= 0) and (row < len(grid)) and (col >= 0) and (col < len(grid[0])) \
+           and grid[row][col] == 1 and not visited[row][col]
+
+# Find the shortest path between sources and destinations in a matrix.
+def find_shortest_path(grid, start, end):
+    # get start cell (start_row, start_col)
+    start_row, start_col = start
+    
+    # get end cell (end_row, end_col)
+    end_row, end_col = end
+
+    # base case: invalid input
+    if not grid or len(grid) == 0 or grid[start_row][start_col] == 0 or grid[end_row][end_col] == 0:
+        return -1
+
+    # `rows × cols` matrix
+    rows, cols = len(grid), len(grid[0])
+    
+    # construct a matrix to keep track of visited cells
+    visited = [[False for _ in range(cols)] for _ in range(rows)]
+    
+    # create an empty queue
+    queue = deque()
+    
+    # mark the start cell as visited and enqueue the start node
+    visited[start_row][start_col] = True
+
+    # (row, col, distance) represents matrix cell coordinates, and their
+    # minimum distance from the start
+    queue.append((start_row, start_col, 0))
+
+    # stores length of the shortest path from start to end
+    min_distance = sys.maxsize
+
+    # loop till queue is empty
+    while queue:
+        # dequeue front node and process it
+        current_row, current_col, current_dist = queue.popleft()
+
+        # (current_row, current_col) represents a current cell, and `current_dist` stores its
+        # minimum distance from the start.
+        # if the end is found, update `min_distance` and stop
+        if current_row == end_row and current_col == end_col:
+            min_distance = current_dist
+            break
+
+        # check for all four possible movements from the current cell
+        # and enqueue each valid movement
+        for direction in range(4):
+            # check if it is possible to go to position
+            # (current_row + row_directions[direction], current_col + col_directions[direction]) from current position
+            next_row, next_col = current_row + row_directions[direction], current_col + col_directions[direction]
+            if is_valid_move(grid, visited, next_row, next_col):
+                # mark next cell as visited and enqueue it
+                visited[next_row][next_col] = True
+                queue.append((next_row, next_col, current_dist + 1))
+
+    if min_distance != sys.maxsize:
+        return min_distance
+    else:
+        return -1
+
+if __name__ == '__main__':
+    grid = [
+        [1, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+        [0, 1, 1, 1, 1, 1, 0, 1, 0, 1],
+        [0, 0, 1, 0, 1, 1, 1, 0, 0, 1],
+        [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+        [0, 0, 0, 1, 0, 0, 0, 1, 0, 1],
+        [1, 0, 1, 1, 1, 0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+        [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+        [0, 0, 1, 0, 0, 1, 1, 0, 0, 1]
+    ]
+
+    start = (0, 0)
+    end = (3, 2)
+
+    min_distance = find_shortest_path(grid, start, end)
+
+    if min_distance != -1:
+        print("The length of the shortest route between start and end: ", min_distance)
+    else:
+        print("The start cannot lead to the end.")
